@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LibroTrack — Your Personal Library Manager</title>
+  <meta name="description" content="LibroTrack is a beautiful, premium library manager to catalog, organize, and track your personal book collection." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <header class="navbar" id="navbar">
+    <div class="navbar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-name">Libro<span class="brand-accent">Track</span></span>
+    </div>
+    <nav class="navbar-actions">
+      <button class="btn-icon" id="toggleViewBtn" title="Toggle view">
+        <svg id="gridIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <svg id="listIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="btn-primary" id="openAddModal">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Add Book
+      </button>
+    </nav>
+  </header>
+
+  <!-- ========== HERO / STATS ========== -->
+  <section class="hero" id="hero">
+    <div class="hero-text">
+      <p class="hero-eyebrow">Your Personal Library</p>
+      <h1 class="hero-title">Catalog Every <em>Story</em> You've Loved</h1>
+      <p class="hero-sub">Add, organize, and revisit your entire book collection in one beautiful place.</p>
+    </div>
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card" id="statTotal">
+        <span class="stat-num" id="statTotalNum">0</span>
+        <span class="stat-label">Total Books</span>
+      </div>
+      <div class="stat-card" id="statRead">
+        <span class="stat-num" id="statReadNum">0</span>
+        <span class="stat-label">Read</span>
+      </div>
+      <div class="stat-card" id="statReading">
+        <span class="stat-num" id="statReadingNum">0</span>
+        <span class="stat-label">Reading</span>
+      </div>
+      <div class="stat-card" id="statUnread">
+        <span class="stat-num" id="statUnreadNum">0</span>
+        <span class="stat-label">To Read</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FILTER / SEARCH BAR ========== -->
+  <section class="toolbar" id="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by title or author…" autocomplete="off" />
+      <button class="clear-search" id="clearSearch" style="display:none">✕</button>
+    </div>
+    <div class="filter-chips" id="filterChips">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="reading">Reading</button>
+      <button class="chip" data-filter="read">Read</button>
+      <button class="chip" data-filter="unread">To Read</button>
+    </div>
+    <div class="sort-wrap">
+      <label for="sortSelect" class="sr-only">Sort by</label>
+      <select id="sortSelect" class="sort-select">
+        <option value="dateAdded">Recently Added</option>
+        <option value="title">Title A–Z</option>
+        <option value="author">Author A–Z</option>
+        <option value="rating">Top Rated</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- ========== BOOK CATALOG ========== -->
+  <main class="catalog" id="catalog">
+    <div class="books-grid" id="booksGrid">
+      <!-- populated by JS -->
+    </div>
+    <div class="empty-state" id="emptyState" style="display:none">
+      <div class="empty-icon">📚</div>
+      <h2>No books here yet</h2>
+      <p>Start building your collection — click <strong>Add Book</strong> to get going.</p>
+      <button class="btn-primary" id="emptyAddBtn">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Add Your First Book
+      </button>
+    </div>
+  </main>
+
+  <!-- ========== ADD / EDIT MODAL ========== -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Add New Book</h2>
+        <button class="btn-icon modal-close" id="modalClose" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <form class="modal-form" id="bookForm" novalidate>
+        <input type="hidden" id="bookId" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookTitle">Title <span class="required">*</span></label>
+            <input type="text" id="bookTitle" placeholder="e.g. The Great Gatsby" required autocomplete="off" />
+            <span class="field-error" id="titleError"></span>
+          </div>
+          <div class="form-group">
+            <label for="bookAuthor">Author <span class="required">*</span></label>
+            <input type="text" id="bookAuthor" placeholder="e.g. F. Scott Fitzgerald" required autocomplete="off" />
+            <span class="field-error" id="authorError"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookGenre">Genre</label>
+            <select id="bookGenre">
+              <option value="">— Select genre —</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Non-Fiction">Non-Fiction</option>
+              <option value="Science Fiction">Science Fiction</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Mystery">Mystery</option>
+              <option value="Thriller">Thriller</option>
+              <option value="Romance">Romance</option>
+              <option value="Historical Fiction">Historical Fiction</option>
+              <option value="Biography">Biography</option>
+              <option value="Self-Help">Self-Help</option>
+              <option value="Philosophy">Philosophy</option>
+              <option value="Poetry">Poetry</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bookYear">Year Published</label>
+            <input type="number" id="bookYear" placeholder="e.g. 1925" min="1000" max="2099" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bookStatus">Status <span class="required">*</span></label>
+            <select id="bookStatus" required>
+              <option value="unread">To Read</option>
+              <option value="reading">Currently Reading</option>
+              <option value="read">Read</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="bookRating">Your Rating</label>
+            <div class="star-rating" id="starRating" role="group" aria-label="Rating">
+              <button type="button" class="star" data-val="1" aria-label="1 star">★</button>
+              <button type="button" class="star" data-val="2" aria-label="2 stars">★</button>
+              <button type="button" class="star" data-val="3" aria-label="3 stars">★</button>
+              <button type="button" class="star" data-val="4" aria-label="4 stars">★</button>
+              <button type="button" class="star" data-val="5" aria-label="5 stars">★</button>
+            </div>
+            <input type="hidden" id="bookRating" value="0" />
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="bookCover">Cover Image URL <span class="optional">(optional)</span></label>
+          <input type="url" id="bookCover" placeholder="https://…" autocomplete="off" />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="bookNotes">Notes <span class="optional">(optional)</span></label>
+          <textarea id="bookNotes" rows="3" placeholder="Your thoughts, quotes, or reminders…"></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveBtn">Save Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== DELETE CONFIRM MODAL ========== -->
+  <div class="modal-overlay" id="deleteOverlay" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+    <div class="modal modal-sm" id="deleteModal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="deleteTitle">Delete Book?</h2>
+        <button class="btn-icon modal-close" id="deleteClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <p class="delete-msg" id="deleteMsg">This action cannot be undone.</p>
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" id="deleteCancelBtn">Cancel</button>
+        <button type="button" class="btn-danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOAST ========== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

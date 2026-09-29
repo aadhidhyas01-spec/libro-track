@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibroTrack - Library Manager</title>
+    <style>
+        *{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#f4f7fb;color:#172033}
+        header{background:#18243a;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center}
+        header h1{margin:0;font-size:24px}.tag{opacity:.75;font-size:13px}
+        main{max-width:1200px;margin:28px auto;padding:0 18px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}
+        .card{background:white;border-radius:14px;padding:18px;box-shadow:0 4px 18px #18243a12}.card small{color:#68748a}.card strong{display:block;font-size:28px;margin-top:8px}
+        nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tab{border:0;background:white;padding:11px 17px;border-radius:9px;cursor:pointer}.tab.active{background:#2f6fed;color:white}
+        section{display:none;background:white;border-radius:14px;padding:20px;box-shadow:0 4px 18px #18243a12}.section-active{display:block}
+        .toolbar{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-bottom:15px}
+        input,select{padding:10px;border:1px solid #d5dce8;border-radius:8px;width:100%}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form-grid button{grid-column:1/-1}
+        button.primary{background:#2f6fed;color:white;border:0;padding:10px 15px;border-radius:8px;cursor:pointer}
+        button.danger{background:#dc3545;color:white;border:0;padding:7px 10px;border-radius:7px;cursor:pointer}
+        button.secondary{background:#edf2fa;border:0;padding:7px 10px;border-radius:7px;cursor:pointer}
+        table{width:100%;border-collapse:collapse;overflow:hidden}th,td{text-align:left;padding:11px;border-bottom:1px solid #edf0f5;font-size:14px}th{background:#f7f9fc}
+        .pill{padding:4px 8px;border-radius:99px;background:#e8f7ed;color:#24713c;font-size:12px}.overdue{background:#fff0f0;color:#b42318}
+        .msg{padding:10px;border-radius:8px;margin:10px 0;display:none}.ok{background:#eaf8ef;color:#1f7a3d}.err{background:#fff0f0;color:#b42318}
+        @media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}table{display:block;overflow:auto}}
+    </style>
+</head>
+<body>
+<header><div><h1>📚 LibroTrack</h1><div class="tag">Library Book Issue & Return Manager</div></div><div id="today"></div></header>
+<main>
+<div class="cards">
+<div class="card"><small>Total Books</small><strong id="bookCount">0</strong></div>
+<div class="card"><small>Available Copies</small><strong id="availableCount">0</strong></div>
+<div class="card"><small>Students</small><strong id="studentCount">0</strong></div>
+<div class="card"><small>Active Issues</small><strong id="issueCount">0</strong></div>
+</div>
+
+<nav>
+<button class="tab active" onclick="showTab('books',this)">Books</button>
+<button class="tab" onclick="showTab('students',this)">Students</button>
+<button class="tab" onclick="showTab('issue',this)">Issue Book</button>
+<button class="tab" onclick="showTab('records',this)">Issue Records</button>
+</nav>
+
+<div id="message" class="msg"></div>
+
+<section id="books" class="section-active">
+<div class="toolbar"><h2>Book Catalogue</h2><input id="bookSearch" placeholder="Search title, author or category..." style="max-width:330px" oninput="loadBooks()"></div>
+<form id="bookForm" class="form-grid">
+<input id="bookTitle" placeholder="Title" required><input id="bookAuthor" placeholder="Author" required>
+<input id="bookIsbn" placeholder="ISBN" required><input id="bookCategory" placeholder="Category" required>
+<input id="bookCopies" type="number" min="1" placeholder="Number of copies" required>
+<button class="primary">Add Book</button>
+</form>
+<br><table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Copies</th><th>Available</th><th>Action</th></tr></thead><tbody id="bookRows"></tbody></table>
+</section>
+
+<section id="students">
+<div class="toolbar"><h2>Students</h2></div>
+<form id="studentForm" class="form-grid">
+<input id="studentName" placeholder="Student name" required><input id="studentReg" placeholder="Register number" required>
+<input id="studentEmail" type="email" placeholder="Email" required><input id="studentPhone" placeholder="Phone">
+<button class="primary">Add Student</button>
+</form>
+<br><table><thead><tr><th>Name</th><th>Register No.</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead><tbody id="studentRows"></tbody></table>
+</section>
+
+<section id="issue">
+<h2>Issue a Book</h2>
+<form id="issueForm" class="form-grid">
+<select id="issueBook" required><option value="">Select available book</option></select>
+<select id="issueStudent" required><option value="">Select student</option></select>
+<button class="primary">Issue Book (14 days)</button>
+</form>
+</section>
+
+<section id="records">
+<div class="toolbar"><h2>Issue & Return Records</h2><button class="secondary" onclick="loadIssues()">Refresh</button></div>
+<table><thead><tr><th>Book</th><th>Student</th><th>Issue Date</th><th>Due Date</th><th>Return Date</th><th>Fine</th><th>Action</th></tr></thead><tbody id="issueRows"></tbody></table>
+</section>
+</main>
+<script>
+const api = '/api';
+const $ = id => document.getElementById(id);
+function showTab(id, btn){document.querySelectorAll('section').forEach(x=>x.classList.remove('section-active'));$(id).classList.add('section-active');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='records')loadIssues();}
+function msg(text,ok=true){$('message').textContent=text;$('message').className='msg '+(ok?'ok':'err');$('message').style.display='block';setTimeout(()=>$('message').style.display='none',3500)}
+async function request(url,opt={}){const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opt});if(!r.ok){let e={};try{e=await r.json()}catch{}throw new Error(e.message||'Request failed');}return r.status===204?null:r.json()}
+async function loadBooks(){let q=$('bookSearch').value.trim();let books=await request(api+'/books'+(q?'?search='+encodeURIComponent(q):''));$('bookRows').innerHTML=books.map(b=>`<tr><td>${b.title}</td><td>${b.author}</td><td>${b.isbn}</td><td>${b.category}</td><td>${b.totalCopies}</td><td><span class="pill">${b.availableCopies}</span></td><td><button class="danger" onclick="deleteBook(${b.id})">Delete</button></td></tr>`).join('');$('bookCount').textContent=books.length;$('availableCount').textContent=books.reduce((s,b)=>s+b.availableCopies,0);$('issueBook').innerHTML='<option value="">Select available book</option>'+books.filter(b=>b.availableCopies>0).map(b=>`<option value="${b.id}">${b.title} (${b.availableCopies} available)</option>`).join('')}
+async function loadStudents(){let s=await request(api+'/students');$('studentRows').innerHTML=s.map(x=>`<tr><td>${x.name}</td><td>${x.registerNumber}</td><td>${x.email}</td><td>${x.phone||''}</td><td><button class="danger" onclick="deleteStudent(${x.id})">Delete</button></td></tr>`).join('');$('studentCount').textContent=s.length;$('issueStudent').innerHTML='<option value="">Select student</option>'+s.map(x=>`<option value="${x.id}">${x.name} - ${x.registerNumber}</option>`).join('')}
+async function loadIssues(){let rows=await request(api+'/issues');$('issueRows').innerHTML=rows.map(i=>{let overdue=!i.returnDate && new Date(i.dueDate+'T23:59:59')<new Date();return `<tr><td>${i.bookTitle}</td><td>${i.studentName}<br><small>${i.registerNumber}</small></td><td>${i.issueDate}</td><td><span class="pill ${overdue?'overdue':''}">${i.dueDate}</span></td><td>${i.returnDate||'Not returned'}</td><td>₹${Number(i.fine).toFixed(2)}</td><td>${i.returnDate?'<span class="pill">Returned</span>':`<button class="primary" onclick="returnBook(${i.id})">Return</button>`}</td></tr>`}).join('');$('issueCount').textContent=rows.filter(x=>!x.returnDate).length}
+$('bookForm').onsubmit=async e=>{e.preventDefault();try{await request(api+'/books',{method:'POST',body:JSON.stringify({title:$('bookTitle').value,author:$('bookAuthor').value,isbn:$('bookIsbn').value,category:$('bookCategory').value,totalCopies:Number($('bookCopies').value),availableCopies:Number($('bookCopies').value)})});e.target.reset();msg('Book added successfully');loadBooks()}catch(x){msg(x.message,false)}}
+$('studentForm').onsubmit=async e=>{e.preventDefault();try{await request(api+'/students',{method:'POST',body:JSON.stringify({name:$('studentName').value,registerNumber:$('studentReg').value,email:$('studentEmail').value,phone:$('studentPhone').value})});e.target.reset();msg('Student added successfully');loadStudents()}catch(x){msg(x.message,false)}}
+$('issueForm').onsubmit=async e=>{e.preventDefault();try{await request(api+'/issues',{method:'POST',body:JSON.stringify({bookId:Number($('issueBook').value),studentId:Number($('issueStudent').value)})});msg('Book issued successfully');loadBooks();loadIssues()}catch(x){msg(x.message,false)}}
+async function returnBook(id){try{let x=await request(api+'/issues/'+id+'/return',{method:'PUT'});msg('Book returned. Fine: ₹'+Number(x.fine).toFixed(2));loadBooks();loadIssues()}catch(x){msg(x.message,false)}}
+async function deleteBook(id){if(!confirm('Delete this book?'))return;try{await request(api+'/books/'+id,{method:'DELETE'});msg('Book deleted');loadBooks()}catch(x){msg(x.message,false)}}
+async function deleteStudent(id){if(!confirm('Delete this student?'))return;try{await request(api+'/students/'+id,{method:'DELETE'});msg('Student deleted');loadStudents()}catch(x){msg(x.message,false)}}
+$('today').textContent=new Date().toLocaleDateString('en-IN',{dateStyle:'medium'});
+Promise.all([loadBooks(),loadStudents(),loadIssues()]);
+</script>
+</body></html>
