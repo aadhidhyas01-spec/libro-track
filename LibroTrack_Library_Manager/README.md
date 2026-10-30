@@ -28,11 +28,10 @@ A Spring Boot + MySQL backend with a simple browser dashboard for the assessment
 1. Install MySQL and start the MySQL service.
 2. Create the database:
    `CREATE DATABASE librotrack;`
-3. Open `src/main/resources/application.properties`.
-4. Set:
-   `spring.datasource.username=root`
-   `spring.datasource.password=root`
-   to your actual MySQL credentials.
+3. Set your MySQL credentials in the terminal before starting Spring Boot:
+   - Windows Command Prompt: `set DB_USERNAME=root` and `set DB_PASSWORD=your_mysql_password`
+   - macOS/Linux: `export DB_USERNAME=root` and `export DB_PASSWORD=your_mysql_password`
+4. Optional: override the JDBC connection string with `DB_URL`.
 
 ## Run
 From the project folder:
