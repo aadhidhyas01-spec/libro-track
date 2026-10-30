@@ -9,7 +9,8 @@ const STORAGE_KEY = 'librotrack_books_v1';
 
 function loadBooks() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -124,30 +125,39 @@ function statusLabel(status) {
 }
 
 function renderBookCard(book) {
-  const cover = book.cover || PLACEHOLDER_IMG;
-  const starsHtml = book.rating ? renderStars(book.rating) : '';
+  const id = escapeAttribute(book.id);
+  const title = String(book.title || "");
+  const author = String(book.author || "");
+  const safeTitle = escapeHtml(title);
+  const safeAuthor = escapeHtml(author);
+  const rawCover = String(book.cover || PLACEHOLDER_IMG).trim();
+  const safeCover = /^(https?:\\/\\/|\\.\\/assets\\/|assets\\/)/i.test(rawCover)
+    ? escapeAttribute(rawCover)
+    : PLACEHOLDER_IMG;
+  const status = ["read", "reading", "unread"].includes(book.status) ? book.status : "unread";
+  const starsHtml = book.rating ? renderStars(book.rating) : "";
 
   return `
-    <article class="book-card" data-id="${book.id}" tabindex="0" aria-label="${book.title} by ${book.author}">
+    <article class="book-card" data-id="${id}" tabindex="0" aria-label="${safeTitle} by ${safeAuthor}">
       <div class="book-cover">
-        <img src="${cover}" alt="Cover of ${book.title}" loading="lazy"
-             onerror="this.src='${PLACEHOLDER_IMG}'" />
+        <img src="${safeCover}" alt="Cover of ${safeTitle}" loading="lazy"
+             onerror="this.onerror=null;this.src='${PLACEHOLDER_IMG}'" />
         <div class="cover-overlay">
-          <button class="cover-action edit-btn" data-id="${book.id}" title="Edit book" aria-label="Edit ${book.title}">
+          <button class="cover-action edit-btn" data-id="${id}" title="Edit book" aria-label="Edit ${safeTitle}">
             ✏️
           </button>
-          <button class="cover-action delete delete-btn" data-id="${book.id}" title="Delete book" aria-label="Delete ${book.title}">
+          <button class="cover-action delete delete-btn" data-id="${id}" title="Delete book" aria-label="Delete ${safeTitle}">
             🗑️
           </button>
         </div>
-        <span class="status-badge ${book.status}">${statusLabel(book.status)}</span>
+        <span class="status-badge ${status}">${statusLabel(status)}</span>
       </div>
       <div class="book-info">
-        <div class="book-title">${escapeHtml(book.title)}</div>
-        <div class="book-author">${escapeHtml(book.author)}</div>
+        <div class="book-title">${safeTitle}</div>
+        <div class="book-author">${safeAuthor}</div>
         <div class="book-meta">
-          ${book.genre ? `<span class="book-genre-tag">${escapeHtml(book.genre)}</span>` : '<span></span>'}
-          ${starsHtml ? `<div class="book-stars">${starsHtml}</div>` : ''}
+          ${book.genre ? `<span class="book-genre-tag">${escapeHtml(book.genre)}</span>` : "<span></span>"}
+          ${starsHtml ? `<div class="book-stars">${starsHtml}</div>` : ""}
         </div>
       </div>
     </article>
@@ -443,24 +453,38 @@ document.addEventListener('keydown', e => {
 });
 
 /* ===== TOAST ===== */
-function showToast(message, type = 'info', duration = 3000) {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type] || '💬'}</span><span>${message}</span>`;
+function showToast(message, type = "info", duration = 3000) {
+  const icons = { success: "✅", error: "❌", info: "ℹ️" };
+  const safeType = Object.prototype.hasOwnProperty.call(icons, type) ? type : "info";
+  const toast = document.createElement("div");
+  toast.className = `toast ${safeType}`;
+
+  const icon = document.createElement("span");
+  icon.className = "toast-icon";
+  icon.textContent = icons[safeType];
+
+  const text = document.createElement("span");
+  text.textContent = String(message ?? "");
+
+  toast.append(icon, text);
   toastContainer.appendChild(toast);
 
   setTimeout(() => {
-    toast.classList.add('hide');
-    toast.addEventListener('animationend', () => toast.remove(), { once: true });
+    toast.classList.add("hide");
+    toast.addEventListener("animationend", () => toast.remove(), { once: true });
   }, duration);
 }
 
 /* ===== UTILITY ===== */
 function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.appendChild(document.createTextNode(str || ''));
+  const d = document.createElement("div");
+  d.appendChild(document.createTextNode(String(str ?? "")));
   return d.innerHTML;
+}
+
+function escapeAttribute(value) {
+  const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return String(value ?? "").replace(/[&<>"']/g, char => entities[char]);
 }
 
 /* ===== SEED DEMO DATA ===== */
