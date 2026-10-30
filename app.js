@@ -131,9 +131,9 @@ function renderBookCard(book) {
   const safeTitle = escapeHtml(title);
   const safeAuthor = escapeHtml(author);
   const rawCover = String(book.cover || PLACEHOLDER_IMG).trim();
-  const safeCover = /^(https?:\\/\\/|\\.\\/assets\\/|assets\\/)/i.test(rawCover)
-    ? escapeAttribute(rawCover)
-    : PLACEHOLDER_IMG;
+  const isRemoteImage = rawCover.startsWith("https://") || rawCover.startsWith("http://");
+  const isLocalAsset = rawCover.startsWith("assets/") || rawCover.startsWith("./assets/");
+  const safeCover = isRemoteImage || isLocalAsset ? escapeAttribute(rawCover) : PLACEHOLDER_IMG;
   const status = ["read", "reading", "unread"].includes(book.status) ? book.status : "unread";
   const starsHtml = book.rating ? renderStars(book.rating) : "";
 
